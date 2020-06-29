@@ -97,12 +97,12 @@ class Results(object):
 
         out_str += self.summary.to_string(
             formatters=[
-                lambda x: f'{x:.3f}',       # Coeff
-                lambda x: f'{x:.3f}',       # std. err.
-                lambda x: f'{x:.3f}',       # t-stat
+                lambda x: f'{x:.6f}',       # Coeff
+                lambda x: f'{x:.6f}',       # std. err.
+                lambda x: f'{x:.2f}',       # t-stat
                 lambda x: f'{x:.3f}',       # p-score
-                lambda x: f'{x:.3f}',       # CI-low
-                lambda x: f'{x:.3f}',       # CI-high
+                lambda x: f'{x:.6f}',       # CI-low
+                lambda x: f'{x:.6f}',       # CI-high
             ]
         ) + '\n'
 

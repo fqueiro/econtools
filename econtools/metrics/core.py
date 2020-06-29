@@ -72,10 +72,8 @@ class RegBase(object):
         for var in self.vars_in_reg:
             self.__dict__[var] = self.__dict__[var].astype(np.float64)
 
-        # Demean or add constant
-        if self.fe_name is not None:
-            self._demean_sample()
-        elif self.addcons:
+        # Add constant
+        if self.addcons:
             _cons = np.ones(self.y.shape[0])
             x = self.__dict__[self.add_constant_to]
             if x.empty:
@@ -83,7 +81,14 @@ class RegBase(object):
             else:
                 x['_cons'] = _cons
             self.__dict__[self.add_constant_to] = x
-
+        
+        # Save raw covariates for prediction
+        self.x_raw = self.x.copy()
+        
+        # Demean
+        if self.fe_name is not None:
+            self._demean_sample()
+        
         # Re-weight sample
         if self.AWT is not None:
             self._weight_sample()
@@ -109,8 +114,8 @@ class RegBase(object):
         """
         X_inner_sum, X_for_resid = self._prep_inference_mats()
 
-        yhat = np.dot(X_for_resid, self.results.beta)
-        resid = self.y - yhat
+        yhat = np.dot(self.x_raw, self.results.beta)
+        resid = self.y - np.dot(X_for_resid, self.results.beta)
 
         # Check through VCE types
         xpx_inv = self.results.xpx_inv
@@ -189,7 +194,7 @@ class RegBase(object):
             if not _fe_nested_in_cluster(self.cluster_id, self.A):
                 K += self.fe_count          # Adjust dof's for group means
             self.results.sst = self.y_raw
-            self.results._nocons = True
+            self.results._nocons = self.nocons
         else:
             self.results._nocons = self.nocons
 
@@ -248,7 +253,7 @@ def _demean(A, df):
         return df
     else:
         group_name = A.name
-        mean = df.groupby(A).mean()
+        mean = df.groupby(A).mean() - df.mean()
         large_mean = force_df(A).join(mean, on=group_name).drop(group_name,
                                                                 axis=1)
         if df.ndim == 1:
