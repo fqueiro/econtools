@@ -14,6 +14,7 @@ def outreg(regs: Union[Results, Tuple[Results]],
            digits: int = 4,
            stars: bool = True,
            se: str = "(",
+           line_end: str = '',
            options: bool=False) -> str:
     """Create the guts of a Latex tabular enviornment from regression results.
 
@@ -43,6 +44,7 @@ def outreg(regs: Union[Results, Tuple[Results]],
     assert isinstance(regs, tuple)
 
     var_names = _set_var_names(var_names, regs)
+    n_vars = len(var_names)
 
     if var_labels is None:
         var_labels = [x if type(x) is str else str(x) for x in var_names]
@@ -52,6 +54,7 @@ def outreg(regs: Union[Results, Tuple[Results]],
     for var_idx, varname in enumerate(var_names):
         table_str += table_mainrow(var_labels[var_idx], varname, regs,
                                    **opt_dict)
+        if var_idx < n_vars-1: table_str += line_end
 
     if options:
         return table_str, opt_dict
